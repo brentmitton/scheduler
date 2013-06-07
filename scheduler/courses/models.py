@@ -10,6 +10,9 @@ FACULTIES = (
         ("O", "Other"),
         )
 
+
+# Department might not actually be a department, for instance
+# UNIV courses.
 class Department(models.Model):
     abbr = models.CharField(max_length=10)
     name = models.CharField(max_length=70, blank=True, null=True)
@@ -19,6 +22,7 @@ class Course(models.Model):
     department = models.ForeignKey(Department)
     number = models.CharField(max_length=10)
     name = models.CharField(max_length=100)
+    section = models.CharField(max_length=1)
 
 class Lab(models.Model):
     course = models.ForeignKey(Course)

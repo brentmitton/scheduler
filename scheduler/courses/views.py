@@ -9,10 +9,13 @@ FALL_URL = "https://secure.upei.ca/cls/dropbox/FallTime.html"
 SPRING_URL = "https://secure.upei.ca/cls/dropbox/SpringTime.html"
 
 def scrape(request, semester):
-    if semester == 1:
-        soup = BeautifulSoup(urllib2.urlopen(FALL_URL))
-    else:
+    if semester == "2":
+        print "SPRING"
         soup = BeautifulSoup(urllib2.urlopen(SPRING_URL))
+    else:
+        print "FALL"
+        semester = "1"
+        soup = BeautifulSoup(urllib2.urlopen(FALL_URL))
 
     tables = soup.findAll('table',attrs={"width":"100%"})
     table = tables[0]
@@ -45,8 +48,7 @@ def scrape(request, semester):
                     dept = depts[0]
 
                 num = re.findall(r'\d+', code)
-                print num
-                course = Course(department=dept, number=num[0], name=name)
+                course = Course(department=dept, number=num[0], name=name, semester=semester)
                 course.save()
 
             else:
@@ -61,9 +63,23 @@ def scrape(request, semester):
                         dept = depts[0]
                     # deal with the actual specific course now
                     num = re.findall('\d+', c)
-                    print num
-                    course = Course(department=dept, number=num[0], name=name)
+                    course = Course(department=dept, number=num[0], name=name, semester=semester)
                     course.save()
+
+        for row in lab_rows:
+            columns = row.findAll("td")
+            if len(columns)>0:
+                code = parse_course_code(columns[0])
+
+                deptMatch = re.match('^\D+', code)
+                dept = deptMatch.group()
+
+                numMatch = re.findall('\d+', code)
+                num = numMatch[0]
+
+                # now I have the course number and department abbr, so I should
+                # be able to assign labs to the correct courses.
+                # I should look to see if I'm handling courses with multiple sections
 
     return HttpResponse("Success")
 
@@ -74,8 +90,7 @@ def parse_course_code(code):
 
         # removes all of the characters mentioned in the given string
         # the translate function makes my life better
-        code = str(code).translate(None, "cl.<>/tdb r") 
-        print "code: %s" %(code)
+        code = str(code).translate(None, "cl.<>/tdb r*") 
         code_list = code.split("(")
         return map(lambda c: "".join(c.split()).translate(None, ")"), code_list)
     else:

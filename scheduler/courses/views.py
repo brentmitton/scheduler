@@ -40,6 +40,11 @@ def scrape(request, semester):
                 abbr = matchObj.group()
                 depts = Department.objects.filter(abbr=abbr)
 
+                if is_letter(code[-1]):
+                    section = code[-1]
+                else:
+                    section = None
+
                 # create the department if it doesnt exist
                 if len(depts) == 0:
                     dept = Department(abbr=abbr)
@@ -48,7 +53,7 @@ def scrape(request, semester):
                     dept = depts[0]
 
                 num = re.findall(r'\d+', code)
-                course = Course(department=dept, number=num[0], name=name, semester=semester)
+                course = Course(department=dept, number=num[0], name=name, semester=semester, section=section)
                 course.save()
 
             else:
@@ -56,6 +61,12 @@ def scrape(request, semester):
                     matchObj = re.match('^\D+', c)
                     abbr = matchObj.group()
                     depts = Department.objects.filter(abbr=abbr)
+
+                    if is_letter(c[-1]):
+                        section = c[-1]
+                    else:
+                        section = None
+
                     if len(depts) == 0:
                         dept = Department(abbr=abbr)
                         dept.save()
@@ -63,7 +74,7 @@ def scrape(request, semester):
                         dept = depts[0]
                     # deal with the actual specific course now
                     num = re.findall('\d+', c)
-                    course = Course(department=dept, number=num[0], name=name, semester=semester)
+                    course = Course(department=dept, number=num[0], name=name, semester=semester, section=section)
                     course.save()
 
         for row in lab_rows:
@@ -95,3 +106,10 @@ def parse_course_code(code):
         return map(lambda c: "".join(c.split()).translate(None, ")"), code_list)
     else:
         return code.string.replace(" ", "")
+
+def is_letter(s):
+    try:
+        float(s)
+        return False
+    except ValueError:
+        return True

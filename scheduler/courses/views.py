@@ -2,6 +2,7 @@ import urllib2
 import re
 from django.http import HttpResponse
 from django.template import loader, RequestContext
+from django.shortcuts import get_object_or_404
 from courses.models import Department, Course, Lab
 import xml.etree.ElementTree as ET
 from BeautifulSoup import BeautifulSoup, NavigableString
@@ -11,7 +12,8 @@ FALL_URL = "https://secure.upei.ca/cls/dropbox/FallTime.html"
 SPRING_URL = "https://secure.upei.ca/cls/dropbox/SpringTime.html"
 
 def semester_list(request, semester=1):
-    courses = Course.objects.filter(semester=semester)
+    print "Ho?"
+    courses = Course.objects.filter(semester=semester).order_by("section").order_by("number")
     t = loader.get_template("list_courses.html")
     c = RequestContext(request, {
             "courses": courses,
@@ -19,8 +21,16 @@ def semester_list(request, semester=1):
 
     return HttpResponse(t.render(c))
 
+def dept_list(request, semester=1, dept=-1):
+    print "hi?"
+    department = get_object_or_404(Department, pk=dept)
+    courses = Course.objects.filter(semester=semester).filter(department=department).order_by("section").order_by("number")
+    t = loader.get_template("list_courses.html")
+    c = RequestContext(request, {
+            "courses": courses,
+        })
 
-
+    return HttpResponse(t.render(c))
 
 ## SCRAPING VIEWS ##
 def scrape(request, semester):
@@ -72,25 +82,24 @@ def scrape(request, semester):
                 course.save()
 
             else:
-                for c in code:
-                    matchObj = re.match('^\D+', c)
-                    abbr = matchObj.group()
-                    depts = Department.objects.filter(abbr=abbr)
+                matchObj = re.match('^\D+', code[0])
+                abbr = matchObj.group()
+                depts = Department.objects.filter(abbr=abbr)
 
-                    if is_letter(c[-1]):
-                        section = c[-1]
-                    else:
-                        section = None
+                if is_letter(code[0][-1]):
+                    section = code[0][-1]
+                else:
+                    section = None
 
-                    if len(depts) == 0:
-                        dept = Department(abbr=abbr)
-                        dept.save()
-                    else:
-                        dept = depts[0]
-                    # deal with the actual specific course now
-                    num = re.findall('\d+', c)
-                    course = Course(department=dept, number=num[0], name=name, semester=semester, section=section)
-                    course.save()
+                if len(depts) == 0:
+                    dept = Department(abbr=abbr)
+                    dept.save()
+                else:
+                    dept = depts[0]
+                # deal with the actual specific course now
+                num = re.findall('\d+', code[0])
+                course = Course(department=dept, number=num[0], name=name, semester=semester, section=section)
+                course.save()
 
         for row in lab_rows:
             columns = row.findAll("td")

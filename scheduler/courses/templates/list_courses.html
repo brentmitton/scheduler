@@ -14,6 +14,9 @@
             <thead>
               <td>Course Number</td>
               <td>Name</td>
+              <td>Instructor</td>
+              <td>Location</td>
+              <td>Labs</td>
             </thead>
             {% for course in courses %}
               <tr>
@@ -23,6 +26,10 @@
                   <td>{{ course.department.abbr }} {{ course.number }}</td>
                 {% endif %}
                 <td>{{ course.name }}</td>
+                <td>{{ course.instructor }}</td>
+                <td>{{ location }}</td>
+                <td> {{ course.labs }}</td>
+
               </tr>
             {% endfor %}
           </table>

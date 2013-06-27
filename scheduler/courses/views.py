@@ -3,7 +3,7 @@ import re
 from django.http import HttpResponse
 from django.template import loader, RequestContext
 from django.shortcuts import get_object_or_404
-from courses.models import Department, Course, Lab
+from courses.models import Department, Course, Lab, Location, Instructor
 import xml.etree.ElementTree as ET
 from BeautifulSoup import BeautifulSoup, NavigableString
 
@@ -12,13 +12,26 @@ FALL_URL = "https://secure.upei.ca/cls/dropbox/FallTime.html"
 SPRING_URL = "https://secure.upei.ca/cls/dropbox/SpringTime.html"
 
 def semester_list(request, semester=1):
-    print "Ho?"
+    courses_and_labs = []
     courses = Course.objects.filter(semester=semester).order_by("section").order_by("number")
+
+    for course in courses:
+        labs = Lab.objects.filter(course=course)
+        courses_and_labs.append({
+            "department": course.department,
+            "number": course.number,
+            "name": course.name,
+            "instructor": course.instructor,
+            "location": course.location,
+            "labs": labs,
+            })
+
     t = loader.get_template("list_courses.html")
     c = RequestContext(request, {
-            "courses": courses,
+            "courses": courses_and_labs,
         })
 
+    print dir(courses)
     return HttpResponse(t.render(c))
 
 def dept_list(request, semester=1, dept=-1):
@@ -59,6 +72,23 @@ def scrape(request, semester):
             status = columns[4].string
             instructor = columns[5].string
 
+            # this area kind of makes me sad. I think I'll need to clean it up
+            location_obj = Location.objects.filter(name=location)
+            instructor_obj = Instructor.objects.filter(name=instructor)
+
+            if len(location_obj) > 0:
+                location_obj = location_obj[0]
+            elif location and location != "&nbsp;":
+                location_obj = Location.objects.create(name=location)
+            else:
+                location_obj = None
+
+            if len(instructor_obj) > 0:
+                instructor_obj = instructor_obj[0]
+            elif instructor and instructor != "&nbsp;":
+                instructor_obj = Instructor.objects.create(name=instructor)
+            else:
+                instructor_obj = None
 
             if isinstance(code, basestring):
                 matchObj = re.match(r'^\D+', code)
@@ -78,7 +108,9 @@ def scrape(request, semester):
                     dept = depts[0]
 
                 num = re.findall(r'\d+', code)
-                course = Course(department=dept, number=num[0], name=name, semester=semester, section=section)
+                course = Course(department=dept, number=num[0], name=name,
+                        semester=semester, section=section, instructor=instructor_obj,
+                        location=location_obj)
                 course.save()
 
             else:
@@ -98,19 +130,28 @@ def scrape(request, semester):
                     dept = depts[0]
                 # deal with the actual specific course now
                 num = re.findall('\d+', code[0])
-                course = Course(department=dept, number=num[0], name=name, semester=semester, section=section)
+                course = Course(department=dept, number=num[0], name=name,
+                        semester=semester, section=section, instructor=instructor_obj,
+                        location=location_obj)
                 course.save()
 
-        for row in lab_rows:
-            columns = row.findAll("td")
-            if len(columns)>0:
-                code = parse_course_code(columns[0])
+    for row in lab_rows:
+        columns = row.findAll("td")
+        if len(columns)>0:
+            code = parse_course_code(columns[0])
 
-                deptMatch = re.match('^\D+', code)
-                dept = deptMatch.group()
+            deptMatch = re.match('^\D+', code)
+            dept = deptMatch.group()
 
-                numMatch = re.findall('\d+', code)
-                num = numMatch[0]
+            numMatch = re.findall('\d+', code)
+            num = numMatch[0]
+
+            department = Department.objects.filter(abbr=str(dept))
+            if len(department) > 0:
+                course = Course.objects.filter(number=num).filter(department=department[0])
+
+                if len(course)>0:
+                    Lab.objects.create(course=course[0])
 
     return HttpResponse("Success")
 

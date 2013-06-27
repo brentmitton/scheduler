@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+
+    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <table class="table table-striped">
+            <thead>
+              <td>Course Number</td>
+              <td>Name</td>
+            </thead>
+            {% for course in courses %}
+              <tr>
+                {% if course.section %}
+                  <td>{{ course.department.abbr }} {{ course.number }}{{ course.section }}</td>
+                {% else %}
+                  <td>{{ course.department.abbr }} {{ course.number }}</td>
+                {% endif %}
+                <td>{{ course.name }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

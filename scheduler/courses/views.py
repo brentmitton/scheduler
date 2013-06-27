@@ -1,13 +1,28 @@
-from courses.models import Department, Course, Lab
-import xml.etree.ElementTree as ET
-from django.http import HttpResponse
-from BeautifulSoup import BeautifulSoup, NavigableString
 import urllib2
 import re
+from django.http import HttpResponse
+from django.template import loader, RequestContext
+from courses.models import Department, Course, Lab
+import xml.etree.ElementTree as ET
+from BeautifulSoup import BeautifulSoup, NavigableString
+
 
 FALL_URL = "https://secure.upei.ca/cls/dropbox/FallTime.html"
 SPRING_URL = "https://secure.upei.ca/cls/dropbox/SpringTime.html"
 
+def semester_list(request, semester=1):
+    courses = Course.objects.filter(semester=semester)
+    t = loader.get_template("list_courses.html")
+    c = RequestContext(request, {
+            "courses": courses,
+        })
+
+    return HttpResponse(t.render(c))
+
+
+
+
+## SCRAPING VIEWS ##
 def scrape(request, semester):
     if semester == "2":
         print "SPRING"
@@ -87,10 +102,6 @@ def scrape(request, semester):
 
                 numMatch = re.findall('\d+', code)
                 num = numMatch[0]
-
-                # now I have the course number and department abbr, so I should
-                # be able to assign labs to the correct courses.
-                # I should look to see if I'm handling courses with multiple sections
 
     return HttpResponse("Success")
 

@@ -4,12 +4,20 @@ from django.http import HttpResponse
 from django.template import loader, RequestContext
 from django.shortcuts import get_object_or_404
 from courses.models import Department, Course, Lab, Location, Instructor
-import xml.etree.ElementTree as ET
-from BeautifulSoup import BeautifulSoup, NavigableString
+from BeautifulSoup import BeautifulSoup
 
 
 FALL_URL = "https://secure.upei.ca/cls/dropbox/FallTime.html"
 SPRING_URL = "https://secure.upei.ca/cls/dropbox/SpringTime.html"
+def index(request):
+    departments = Department.objects.all().order_by("name")
+
+
+    t = loader.get_template("index.html")
+    c = RequestContext(request, {
+            "departments": departments,
+        })
+    return HttpResponse(t.render(c))
 
 def semester_list(request, semester=1):
     courses_and_labs = []
@@ -31,16 +39,27 @@ def semester_list(request, semester=1):
             "courses": courses_and_labs,
         })
 
-    print dir(courses)
     return HttpResponse(t.render(c))
 
 def dept_list(request, semester=1, dept=-1):
-    print "hi?"
+    courses_and_labs = []
     department = get_object_or_404(Department, pk=dept)
     courses = Course.objects.filter(semester=semester).filter(department=department).order_by("section").order_by("number")
+
+    for course in courses:
+        labs = Lab.objects.filter(course=course)
+        courses_and_labs.append({
+            "department": course.department,
+            "number": course.number,
+            "name": course.name,
+            "instructor": course.instructor,
+            "location": course.location,
+            "labs": labs,
+            })
+
     t = loader.get_template("list_courses.html")
     c = RequestContext(request, {
-            "courses": courses,
+            "courses": courses_and_labs,
         })
 
     return HttpResponse(t.render(c))
@@ -63,6 +82,7 @@ def scrape(request, semester):
     lab_rows = table.findAll(lambda tag: tag.name == "tr" and tag.attrs)
 
     for row in course_rows:
+        print "scraping"
         columns = row.findAll("td")
         if len(columns)>0:
             code = parse_course_code(columns[0])
@@ -146,12 +166,21 @@ def scrape(request, semester):
             numMatch = re.findall('\d+', code)
             num = numMatch[0]
 
+            if is_letter(code[-1]) and code[-1] != "*":
+                section = code[-1]
+            else:
+                section = None
+
             department = Department.objects.filter(abbr=str(dept))
+
             if len(department) > 0:
-                course = Course.objects.filter(number=num).filter(department=department[0])
+                if section is not None:
+                    course = Course.objects.filter(number=num).filter(department=department[0]).filter(section=section)
+                else:
+                    course = Course.objects.filter(number=num).filter(department=department[0])
 
                 if len(course)>0:
-                    Lab.objects.create(course=course[0])
+                    Lab.objects.create(course=course[0], name=columns[1].string)
 
     return HttpResponse("Success")
 

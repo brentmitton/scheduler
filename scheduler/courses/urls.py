@@ -7,5 +7,4 @@ urlpatterns = patterns('courses.views',
         url(r'^scrape/(?P<semester>\d+)/$', 'scrape', name='scrape'),
         url(r'^(?P<semester>\d+)/(?P<dept>\d+)', 'dept_list', name='dept_list'),
         url(r'^(?P<semester>\d+)/', 'semester_list', name='semester_list'),
-        url('/$', 'semester_list'),
         )

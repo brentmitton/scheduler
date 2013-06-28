@@ -10,7 +10,7 @@ from BeautifulSoup import BeautifulSoup
 FALL_URL = "https://secure.upei.ca/cls/dropbox/FallTime.html"
 SPRING_URL = "https://secure.upei.ca/cls/dropbox/SpringTime.html"
 def index(request):
-    departments = Department.objects.all().order_by("name")
+    departments = Department.objects.all().order_by("name").order_by("faculty")
 
 
     t = loader.get_template("index.html")
@@ -41,7 +41,30 @@ def semester_list(request, semester=1):
 
     return HttpResponse(t.render(c))
 
-def dept_list(request, semester=1, dept=-1):
+def dept_list(request, dept):
+    courses_and_labs = []
+    department = get_object_or_404(Department, pk=dept)
+    courses = Course.objects.filter(department=department).order_by("section").order_by("number")
+
+    for course in courses:
+        labs = Lab.objects.filter(course=course)
+        courses_and_labs.append({
+            "department": course.department,
+            "number": course.number,
+            "name": course.name,
+            "instructor": course.instructor,
+            "location": course.location,
+            "labs": labs,
+            })
+
+    t = loader.get_template("list_courses.html")
+    c = RequestContext(request, {
+            "courses": courses_and_labs,
+        })
+
+    return HttpResponse(t.render(c))
+
+def dept_sem_list(request, semester=1, dept=-1):
     courses_and_labs = []
     department = get_object_or_404(Department, pk=dept)
     courses = Course.objects.filter(semester=semester).filter(department=department).order_by("section").order_by("number")

@@ -3,3 +3,5 @@
 .DS_STORE
 
 *.swo
+
+scheduler/scheduler/urls.pyc

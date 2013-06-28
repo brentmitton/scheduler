@@ -3,7 +3,25 @@
   <head></head>
   <body>
     {% for d in departments %}
-      {{ d.name }} <br/>
+      {% ifchanged d.faculty %}
+        {# I'll have to make something special for this. Stupid ChoiceFields #}
+        {% if d.faculty == "A" %}
+          <h3>Arts</h3>
+        {% elif d.faculty == "B" %}
+          <h3>Business</h3>
+        {% elif d.faculty == "E" %}
+          <h3>Education</h3>
+        {% elif d.faculty == "N" %}
+          <h3>Nursing</h3>
+        {% elif d.faculty == "O" %}
+          <h3>Other</h3>
+        {% elif d.faculty == "S" %}
+          <h3>Science</h3>
+        {% elif d.faculty == "V" %}
+          <h3>Veterinary Medicine</h3>
+        {% endif %}
+      {% endifchanged %}
+      <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
     {% endfor %}
   </body>
 </html>

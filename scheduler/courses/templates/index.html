@@ -1,28 +1,135 @@
 <!DOCTYPE html>
 <html>
-  <head></head>
+  <head>
+    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script> 
+  </head>
   <body>
-    {% for d in departments %}
-      {% ifchanged d.faculty %}
-        {# I'll have to make something special for this. Stupid ChoiceFields #}
-        {% if d.faculty == "A" %}
-          <h3>Arts</h3>
-        {% elif d.faculty == "B" %}
-          <h3>Business</h3>
-        {% elif d.faculty == "E" %}
-          <h3>Education</h3>
-        {% elif d.faculty == "N" %}
-          <h3>Nursing</h3>
-        {% elif d.faculty == "O" %}
-          <h3>Other</h3>
-        {% elif d.faculty == "S" %}
-          <h3>Science</h3>
-        {% elif d.faculty == "V" %}
-          <h3>Veterinary Medicine</h3>
-        {% endif %}
-      {% endifchanged %}
-      <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
-    {% endfor %}
+    <div class="container">
+
+      <h3>Arts</h3>
+      <div class="row">
+        <div class="span12">
+            {% for d in arts %}
+              {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+              {% endif %}
+              <div class="span3">
+                <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
+              </div>
+              {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+              {% endif %}
+            {% endfor %}
+        </div>
+      </div>
+
+      <h3>Science</h3>
+      <div class="row">
+        <div class="span12">
+            {% for d in science %}
+              {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+              {% endif %}
+              <div class="span3">
+                <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
+              </div>
+              {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+              {% endif %}
+            {% endfor %}
+        </div>
+      </div>
+
+      <h3>Business</h3>
+      <div class="row">
+        <div class="span12">
+            {% for d in business %}
+              {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+              {% endif %}
+              <div class="span3">
+                <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
+              </div>
+              {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+              {% endif %}
+            {% endfor %}
+        </div>
+      </div>
+
+
+      <h3>Nursing</h3>
+      <div class="row">
+        <div class="span12">
+            {% for d in nursing %}
+              {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+              {% endif %}
+              <div class="span3">
+                <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
+              </div>
+              {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+              {% endif %}
+            {% endfor %}
+        </div>
+      </div>
+
+
+      <h3>Education</h3>
+      <div class="row">
+        <div class="span12">
+            {% for d in education %}
+              {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+              {% endif %}
+              <div class="span3">
+                <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
+              </div>
+              {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+              {% endif %}
+            {% endfor %}
+        </div>
+      </div>
+
+      <h3>Veterinary Medicine</h3>
+      <div class="row">
+        <div class="span12">
+            {% for d in vet %}
+              {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+              {% endif %}
+              <div class="span3">
+                <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
+              </div>
+              {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+              {% endif %}
+            {% endfor %}
+        </div>
+      </div>
+
+
+      <h3>Other</h3>
+      <div class="row">
+        <div class="span12">
+            {% for d in other %}
+              {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+              {% endif %}
+              <div class="span3">
+                <a href="{% url "dept_list" d.id %}">{{ d.name }}</a> <br/>
+              </div>
+              {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+              {% endif %}
+            {% endfor %}
+        </div>
+      </div>
+
+    </div>
   </body>
 </html>
 

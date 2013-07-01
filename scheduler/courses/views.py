@@ -130,6 +130,8 @@ def scrape(request, semester):
             status = columns[4].string
             instructor = columns[5].string
 
+            print time
+
             # this area kind of makes me sad. I think I'll need to clean it up
             location_obj = Location.objects.filter(name=location)
             instructor_obj = Instructor.objects.filter(name=instructor)

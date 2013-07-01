@@ -45,6 +45,8 @@ class Course(models.Model):
     semester = models.CharField(max_length=1, choices=SEMESTER)
     instructor = models.ForeignKey(Instructor, null=True, blank=True)
     location = models.ForeignKey(Location, null=True, blank=True)
+    start_time = models.IntegerField(null=True, blank=True)
+    end_time= models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
         if self.section is not None:
